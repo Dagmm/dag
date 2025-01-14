@@ -1,81 +1,73 @@
-<?php
-require_once 'Portfolio.php';
-require_once 'HtmlRenderer.php';
 
-$portfolio = new Portfolio();
-$about = $portfolio->getAboutSection();
-$projects = $portfolio->getProjects();
+<?php
+require_once 'db_connection.php';
+$db = new Database();
+$conn = $db->conn;
+
+$sections = $conn->query("SELECT * FROM sections ORDER BY id ASC")->fetchAll(PDO::FETCH_ASSOC);
+$projects = $conn->query("SELECT * FROM projects ORDER BY created_at DESC")->fetchAll(PDO::FETCH_ASSOC);
+$testimonials = $conn->query("SELECT * FROM testimonials ORDER BY created_at DESC")->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-
     <title>Portfolio</title>
-    <link rel="stylesheet" href="style.css">
-    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
-    <script src="script.js" defer></script>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <header>
-        <a href="#" class="logo">dag</a>
-        <nav>
-            <a href="#home">Home</a>
-            <a href="#projects">Projects</a>
-            <a href="#about">About</a>
-        </nav>
-        <a href="#contact" class="contact">Contact</a>
-    </header>
+    <?php foreach ($sections as $section): ?>
+        <section id="<?= strtolower($section['section_name']) ?>">
+            <h2><?= htmlspecialchars($section['section_name']) ?></h2>
+                  <div>
+                <?= nl2br(htmlspecialchars($section['content'])) ?>
+            </div>
+        </section>
+    <?php endforeach; ?>
 
-    <section id="home">
-        <div class="home-content">
-
-            <h2>I am <span>Dag</span>, a C.S. student</h2>
-            <p>Welcome to my portfolio!</p>
+    <section id="portfolio">
+        <h2>Projects</h2>
+        <div class="projects">
+            <?php foreach ($projects as $project): ?>
+                <div class="project">
+                    <h3><?= htmlspecialchars($project['title']) ?></h3>
+                    <p><?= nl2br(htmlspecialchars($project['description'])) ?></p>
+                    <?php if (!empty($project['image_url'])): ?>
+                        <img src="<?= htmlspecialchars($project['image_url']) ?>" alt="<?= htmlspecialchars($project['title']) ?>">
+                    <?php endif; ?>
+                    <a href="<?= htmlspecialchars($project['link']) ?>" target="_blank">View Project</a>
+                </div>
+            <?php endforeach; ?>
         </div>
     </section>
 
-    <section id="about">
-        <?php HtmlRenderer::renderAboutSection($about); ?>
-    </section>
-
-    <section id="projects">
-        <h2>My Projects</h2>
-        <?php HtmlRenderer::renderProjects($projects); ?>
+    <section id="testimonials">
+        <h2>Testimonials</h2>
+        <div class="testimonials">
+            <?php foreach ($testimonials as $testimonial): ?>
+                <blockquote>
+                    <?= nl2br(htmlspecialchars($testimonial['feedback'])) ?>
+                    <cite>— <?= htmlspecialchars($testimonial['name']) ?></cite>
+                </blockquote>
+            <?php endforeach; ?>
+        </div>
     </section>
 
     <section id="contact">
-        <h2>Contact Me</h2>
+        <h2>Contact</h2>
         <form action="submit_contact.php" method="POST">
-            <div class="input-box">
-                <input type="text" name="full_name" placeholder="Full Name" required>
-                <input type="email" name="email" placeholder="Email" required>
-            </div>
-            <div class="input-box">
-                <input type="text" name="phone_number" placeholder="Phone Number">
-                <input type="text" name="subject" placeholder="Subject">
-            </div>
+            <input type="text" name="full_name" placeholder="Your Name" required>
+            <input type="email" name="email" placeholder="Your Email" required>
+            <input type="text" name="phone_number" placeholder="Your Phone">
+            <input type="text" name="subject" placeholder="Subject" required>
             <textarea name="message" placeholder="Your Message" required></textarea>
-            <input type="submit" value="Send Message" class="btn">
+            <button type="submit">Send Message</button>
         </form>
     </section>
-
-    <footer>
-        <div class="social">
-            <a href="#"><i class='bx bxl-linkedin-square'></i></a>
-            <a href="#"><i class='bx bxl-facebook-circle'></i></a>
-            <a href="#"><i class='bx bxl-instagram'></i></a>
-            <a href="#"><i class='bx bxl-github'></i></a>
-        </div>
-        <ul>
-            <li><a href="#">FAQ</a></li>
-            <li><a href="#">Projects</a></li>
-            <li><a href="#">About Me</a></li>
-            <li><a href="#">Contact</a></li>
-            <li><a href="#">Privacy Policy</a></li>
-        </ul>
-    </footer>
 </body>
 </html>
 
+
+
+
+<?php
